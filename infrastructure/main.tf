@@ -43,10 +43,11 @@ data "aws_route53_zone" "main" {
 
 # CAA record to allow Amazon to issue certificates
 resource "aws_route53_record" "caa" {
-  zone_id = data.aws_route53_zone.main.zone_id
-  name    = var.domain_name
-  type    = "CAA"
-  ttl     = 300
+  zone_id         = data.aws_route53_zone.main.zone_id
+  name            = var.domain_name
+  type            = "CAA"
+  ttl             = 300
+  allow_overwrite = true
 
   records = [
     "0 issue \"amazon.com\"",
