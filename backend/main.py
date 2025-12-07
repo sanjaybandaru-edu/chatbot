@@ -20,13 +20,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS middleware
+# CORS middleware - Note: allow_credentials=False when using wildcard origin
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Default user ID (since this is a personal app)
@@ -48,7 +49,7 @@ class ChatUpdate(BaseModel):
 class MessageCreate(BaseModel):
     content: str
     chat_id: Optional[str] = None
-    model_config_id: Optional[str] = None
+    selected_model_id: Optional[str] = None
 
 
 class MemoryCreate(BaseModel):
@@ -165,8 +166,8 @@ async def chat_completion(message: MessageCreate):
     
     # Get model config
     model_config = None
-    if message.model_config_id:
-        model_config = db.get_model_config(message.model_config_id)
+    if message.selected_model_id:
+        model_config = db.get_model_config(message.selected_model_id)
     if not model_config:
         model_config = db.get_default_model_config()
     if not model_config:

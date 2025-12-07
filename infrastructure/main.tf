@@ -414,14 +414,7 @@ resource "aws_lambda_function_url" "api" {
   function_name      = aws_lambda_function.api.function_name
   authorization_type = "NONE"
 
-  cors {
-    allow_credentials = true
-    allow_headers     = ["*"]
-    allow_methods     = ["*"]
-    allow_origins     = ["*"]
-    expose_headers    = ["*"]
-    max_age           = 86400
-  }
+  # Note: CORS is handled by FastAPI middleware to avoid duplicate headers
 }
 
 # Allow Lambda Function URL to invoke Lambda

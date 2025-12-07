@@ -53,7 +53,7 @@ export const chatApi = {
             body: JSON.stringify({
                 content,
                 chat_id: chatId,
-                model_config_id: modelConfigId,
+                selected_model_id: modelConfigId,
             }),
         });
 
