@@ -2,10 +2,6 @@ import { useState, useCallback } from 'react';
 import { Sparkles, Lock, Unlock } from 'lucide-react';
 
 // Pattern: 58624 (positions on numpad)
-// 7 8 9
-// 4 5 6
-// 1 2 3
-// Mapping: 5=center, 8=top, 6=right, 2=bottom, 4=left
 const CORRECT_PATTERN = [5, 8, 6, 2, 4];
 
 function PatternLock({ onUnlock }) {
@@ -15,7 +11,6 @@ function PatternLock({ onUnlock }) {
     const [success, setSuccess] = useState(false);
     const [activeLines, setActiveLines] = useState([]);
 
-    // Grid positions (3x3 grid, numbered 1-9)
     const dots = [
         { id: 7, row: 0, col: 0 },
         { id: 8, row: 0, col: 1 },
@@ -31,23 +26,15 @@ function PatternLock({ onUnlock }) {
     const getDotPosition = (id) => {
         const dot = dots.find(d => d.id === id);
         if (!dot) return { x: 0, y: 0 };
-        return {
-            x: dot.col * 80 + 40,
-            y: dot.row * 80 + 40
-        };
+        return { x: dot.col * 80 + 40, y: dot.row * 80 + 40 };
     };
 
     const handleDotEnter = useCallback((dotId) => {
-        if (!isDrawing) return;
-        if (pattern.includes(dotId)) return;
-
+        if (!isDrawing || pattern.includes(dotId)) return;
         const newPattern = [...pattern, dotId];
         setPattern(newPattern);
-
-        // Update lines
         if (pattern.length > 0) {
-            const lastDot = pattern[pattern.length - 1];
-            setActiveLines(prev => [...prev, { from: lastDot, to: dotId }]);
+            setActiveLines(prev => [...prev, { from: pattern[pattern.length - 1], to: dotId }]);
         }
     }, [isDrawing, pattern]);
 
@@ -62,15 +49,12 @@ function PatternLock({ onUnlock }) {
         if (!isDrawing) return;
         setIsDrawing(false);
 
-        // Check pattern
         const isCorrect = pattern.length === CORRECT_PATTERN.length &&
             pattern.every((dot, i) => dot === CORRECT_PATTERN[i]);
 
         if (isCorrect) {
             setSuccess(true);
-            setTimeout(() => {
-                onUnlock();
-            }, 800);
+            setTimeout(() => onUnlock(), 800);
         } else {
             setError(true);
             setTimeout(() => {
@@ -84,88 +68,64 @@ function PatternLock({ onUnlock }) {
     const getStateColor = () => {
         if (success) return '#22c55e';
         if (error) return '#ef4444';
-        return '#8b5cf6';
+        return '#d4f542'; // PartyRock lime
     };
 
     return (
-        <div
-            className="min-h-screen bg-dark-950 flex items-center justify-center p-4"
-            onMouseUp={handleEnd}
-            onTouchEnd={handleEnd}
-        >
+        <div className="min-h-screen flex items-center justify-center p-4"
+            style={{ background: 'var(--pr-bg)' }}
+            onMouseUp={handleEnd} onTouchEnd={handleEnd}>
+
             {/* Animated background */}
             <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse-slow" />
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary-500/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }} />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
+                <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl animate-pulse"
+                    style={{ background: 'rgba(212, 245, 66, 0.1)' }} />
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl animate-pulse"
+                    style={{ background: 'rgba(168, 224, 99, 0.1)', animationDelay: '1s' }} />
             </div>
 
             <div className="relative z-10 text-center">
-                {/* Logo and Title */}
+                {/* Logo */}
                 <div className="mb-8">
-                    <div className={`w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center shadow-2xl transition-all duration-500 ${success ? 'scale-110 shadow-green-500/50' : error ? 'animate-shake shadow-red-500/50' : 'shadow-purple-500/30'}`}>
+                    <div className={`w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-all duration-500 ${success ? 'scale-110' : error ? 'animate-shake' : ''
+                        }`}
+                        style={{
+                            background: success ? '#22c55e' : error ? '#ef4444' : 'var(--pr-lime)',
+                            boxShadow: `0 0 30px ${getStateColor()}40`
+                        }}>
                         {success ? (
                             <Unlock size={36} className="text-white animate-bounce" />
                         ) : (
-                            <Lock size={36} className="text-white" />
+                            <Lock size={36} className="text-gray-900" />
                         )}
                     </div>
-                    <h1 className="text-3xl font-bold gradient-text mb-2">My ChatGPT</h1>
-                    <p className="text-gray-400 text-sm">Draw pattern to unlock</p>
+                    <h1 className="text-3xl font-bold text-white mb-2">ChatBot</h1>
+                    <p className="text-gray-500 text-sm">Draw pattern to unlock</p>
                 </div>
 
                 {/* Pattern Grid */}
-                <div
-                    className="relative w-60 h-60 mx-auto select-none touch-none"
-                    style={{ userSelect: 'none' }}
-                >
-                    {/* SVG for lines */}
-                    <svg
-                        className="absolute inset-0 w-full h-full pointer-events-none"
-                        style={{ zIndex: 1 }}
-                    >
+                <div className="relative w-60 h-60 mx-auto select-none touch-none pr-card p-4" style={{ userSelect: 'none' }}>
+                    <svg className="absolute inset-4 w-[calc(100%-2rem)] h-[calc(100%-2rem)] pointer-events-none" style={{ zIndex: 1 }}>
                         {activeLines.map((line, i) => {
                             const from = getDotPosition(line.from);
                             const to = getDotPosition(line.to);
                             return (
-                                <line
-                                    key={i}
-                                    x1={from.x}
-                                    y1={from.y}
-                                    x2={to.x}
-                                    y2={to.y}
-                                    stroke={getStateColor()}
-                                    strokeWidth="4"
-                                    strokeLinecap="round"
-                                    className="transition-all duration-200"
-                                    style={{
-                                        filter: `drop-shadow(0 0 8px ${getStateColor()})`
-                                    }}
-                                />
+                                <line key={i} x1={from.x} y1={from.y} x2={to.x} y2={to.y}
+                                    stroke={getStateColor()} strokeWidth="4" strokeLinecap="round"
+                                    style={{ filter: `drop-shadow(0 0 8px ${getStateColor()})` }} />
                             );
                         })}
                     </svg>
 
-                    {/* Dots */}
                     {dots.map((dot) => {
                         const isActive = pattern.includes(dot.id);
-                        const isFirst = pattern[0] === dot.id;
-
                         return (
-                            <div
-                                key={dot.id}
+                            <div key={dot.id}
                                 className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer"
-                                style={{
-                                    left: dot.col * 80 + 40,
-                                    top: dot.row * 80 + 40,
-                                    zIndex: 2
-                                }}
+                                style={{ left: dot.col * 80 + 40, top: dot.row * 80 + 40, zIndex: 2 }}
                                 onMouseDown={() => handleDotStart(dot.id)}
                                 onMouseEnter={() => handleDotEnter(dot.id)}
-                                onTouchStart={(e) => {
-                                    e.preventDefault();
-                                    handleDotStart(dot.id);
-                                }}
+                                onTouchStart={(e) => { e.preventDefault(); handleDotStart(dot.id); }}
                                 onTouchMove={(e) => {
                                     e.preventDefault();
                                     const touch = e.touches[0];
@@ -174,67 +134,28 @@ function PatternLock({ onUnlock }) {
                                     if (dotId) handleDotEnter(parseInt(dotId));
                                 }}
                             >
-                                {/* Outer ring */}
-                                <div
-                                    className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ${isActive
-                                            ? success
-                                                ? 'bg-green-500/20 scale-110'
-                                                : error
-                                                    ? 'bg-red-500/20 scale-90'
-                                                    : 'bg-purple-500/20 scale-110'
-                                            : 'bg-dark-800/50 hover:bg-dark-700/50'
-                                        }`}
-                                    style={{
-                                        boxShadow: isActive ? `0 0 20px ${getStateColor()}40` : 'none'
-                                    }}
-                                    data-dot-id={dot.id}
-                                >
-                                    {/* Inner dot */}
-                                    <div
-                                        className={`w-6 h-6 rounded-full transition-all duration-300 ${isActive
-                                                ? success
-                                                    ? 'bg-green-500 scale-125'
-                                                    : error
-                                                        ? 'bg-red-500'
-                                                        : 'bg-purple-500 scale-125'
-                                                : 'bg-dark-600'
-                                            }`}
-                                        style={{
-                                            boxShadow: isActive ? `0 0 15px ${getStateColor()}` : 'none'
-                                        }}
-                                        data-dot-id={dot.id}
-                                    >
-                                        {/* Pulse animation for first dot */}
-                                        {isFirst && !success && !error && (
-                                            <div
-                                                className="absolute inset-0 rounded-full animate-ping"
-                                                style={{ backgroundColor: getStateColor(), opacity: 0.3 }}
-                                            />
-                                        )}
-                                    </div>
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ${isActive ? 'scale-110' : 'bg-gray-800/50 hover:bg-gray-700/50'
+                                    }`}
+                                    style={isActive ? { background: `${getStateColor()}20`, boxShadow: `0 0 20px ${getStateColor()}40` } : {}}
+                                    data-dot-id={dot.id}>
+                                    <div className={`w-6 h-6 rounded-full transition-all duration-300 ${isActive ? 'scale-125' : 'bg-gray-600'}`}
+                                        style={isActive ? { background: getStateColor(), boxShadow: `0 0 15px ${getStateColor()}` } : {}}
+                                        data-dot-id={dot.id} />
                                 </div>
                             </div>
                         );
                     })}
                 </div>
 
-                {/* Status message */}
+                {/* Status */}
                 <div className="mt-8 h-6">
-                    {error && (
-                        <p className="text-red-400 text-sm animate-fade-in">Wrong pattern. Try again.</p>
-                    )}
+                    {error && <p className="text-red-400 text-sm animate-fade-in">Wrong pattern. Try again.</p>}
                     {success && (
-                        <p className="text-green-400 text-sm animate-fade-in flex items-center justify-center gap-2">
-                            <Sparkles size={16} />
-                            Welcome back, Sanjay!
+                        <p className="text-sm animate-fade-in flex items-center justify-center gap-2" style={{ color: 'var(--pr-lime)' }}>
+                            <Sparkles size={16} /> Welcome back, Sanjay!
                         </p>
                     )}
                 </div>
-
-                {/* Hint */}
-                <p className="mt-4 text-gray-600 text-xs">
-                    Connect the dots to draw your pattern
-                </p>
             </div>
 
             <style>{`
@@ -243,9 +164,7 @@ function PatternLock({ onUnlock }) {
           10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
           20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
-        .animate-shake {
-          animation: shake 0.5s ease-in-out;
-        }
+        .animate-shake { animation: shake 0.5s ease-in-out; }
       `}</style>
         </div>
     );

@@ -150,6 +150,11 @@ function App() {
         setAuthenticated(true);
     };
 
+    const handleLogout = () => {
+        sessionStorage.removeItem('chatgpt_auth');
+        setAuthenticated(false);
+    };
+
     // Show pattern lock if not authenticated
     if (!authenticated) {
         return <PatternLock onUnlock={handleUnlock} />;
@@ -157,9 +162,9 @@ function App() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-dark-950 flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--pr-bg)' }}>
                 <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" style={{ borderColor: 'var(--pr-lime)', borderTopColor: 'transparent' }}></div>
                     <p className="text-gray-400">Loading...</p>
                 </div>
             </div>
@@ -167,11 +172,12 @@ function App() {
     }
 
     return (
-        <div className="min-h-screen bg-dark-950 text-white flex">
+        <div className="min-h-screen text-white flex" style={{ background: 'var(--pr-bg)' }}>
             {/* Mobile menu button */}
             <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="md:hidden fixed top-4 left-4 z-50 p-2 bg-dark-800 rounded-lg border border-dark-700"
+                className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg border border-gray-700"
+                style={{ background: 'var(--pr-dark)' }}
             >
                 {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -190,6 +196,7 @@ function App() {
                     onDeleteChat={handleDeleteChat}
                     onRenameChat={handleRenameChat}
                     onOpenSettings={() => setShowSettings(true)}
+                    onLogout={handleLogout}
                 />
             </div>
 
