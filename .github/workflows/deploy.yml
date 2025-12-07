@@ -1,0 +1,113 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.6.0'
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Build Frontend
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+        env:
+          VITE_API_URL: ''  # Will be updated after Terraform apply
+
+      # Package Backend
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          pip install -r requirements.txt -t ./package
+          cp *.py ./package/
+
+      - name: Create backend zip
+        working-directory: backend
+        run: |
+          cd package
+          zip -r ../backend.zip .
+          cd ..
+          mv backend.zip ../infrastructure/
+
+      # Terraform Init & Apply
+      - name: Terraform Init
+        working-directory: infrastructure
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: infrastructure
+        run: terraform apply -auto-approve
+        
+      - name: Get Terraform Outputs
+        id: terraform
+        working-directory: infrastructure
+        run: |
+          echo "api_url=$(terraform output -raw api_url)" >> $GITHUB_OUTPUT
+          echo "s3_bucket=$(terraform output -raw s3_bucket)" >> $GITHUB_OUTPUT
+          echo "cloudfront_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT
+          echo "frontend_url=$(terraform output -raw frontend_url)" >> $GITHUB_OUTPUT
+
+      # Rebuild Frontend with API URL
+      - name: Rebuild frontend with API URL
+        working-directory: frontend
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ steps.terraform.outputs.api_url }}
+
+      # Deploy Frontend to S3
+      - name: Deploy frontend to S3
+        run: |
+          aws s3 sync frontend/dist s3://${{ steps.terraform.outputs.s3_bucket }} --delete
+
+      # Invalidate CloudFront cache
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ steps.terraform.outputs.cloudfront_id }} \
+            --paths "/*"
+
+      # Output URLs
+      - name: Print deployment info
+        run: |
+          echo "🚀 Deployment complete!"
+          echo ""
+          echo "Frontend URL: ${{ steps.terraform.outputs.frontend_url }}"
+          echo "API URL: ${{ steps.terraform.outputs.api_url }}"

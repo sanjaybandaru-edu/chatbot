@@ -1,0 +1,214 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Custom animations */
+@keyframes typing {
+  0%, 60%, 100% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+.typing-indicator span {
+  animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Markdown content styling */
+.markdown-content {
+  @apply text-gray-100 leading-relaxed;
+}
+
+.markdown-content h1 {
+  @apply text-2xl font-bold mt-6 mb-4 text-white;
+}
+
+.markdown-content h2 {
+  @apply text-xl font-semibold mt-5 mb-3 text-white;
+}
+
+.markdown-content h3 {
+  @apply text-lg font-semibold mt-4 mb-2 text-white;
+}
+
+.markdown-content h4, .markdown-content h5, .markdown-content h6 {
+  @apply font-semibold mt-3 mb-2 text-white;
+}
+
+.markdown-content p {
+  @apply mb-4 last:mb-0;
+}
+
+.markdown-content ul, .markdown-content ol {
+  @apply mb-4 pl-6;
+}
+
+.markdown-content ul {
+  @apply list-disc;
+}
+
+.markdown-content ol {
+  @apply list-decimal;
+}
+
+.markdown-content li {
+  @apply mb-2;
+}
+
+.markdown-content li > ul, .markdown-content li > ol {
+  @apply mt-2 mb-0;
+}
+
+.markdown-content a {
+  @apply text-primary-400 hover:text-primary-300 underline;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-primary-500 pl-4 py-2 my-4 italic bg-dark-800/50 rounded-r;
+}
+
+.markdown-content code:not(pre code) {
+  @apply bg-dark-700 text-primary-300 px-1.5 py-0.5 rounded text-sm font-mono;
+}
+
+.markdown-content pre {
+  @apply bg-dark-900 rounded-lg p-4 my-4 overflow-x-auto;
+}
+
+.markdown-content pre code {
+  @apply bg-transparent p-0 text-sm;
+}
+
+.markdown-content table {
+  @apply w-full border-collapse my-4;
+}
+
+.markdown-content th, .markdown-content td {
+  @apply border border-dark-600 px-4 py-2 text-left;
+}
+
+.markdown-content th {
+  @apply bg-dark-800 font-semibold;
+}
+
+.markdown-content tr:nth-child(even) {
+  @apply bg-dark-800/30;
+}
+
+.markdown-content hr {
+  @apply border-dark-600 my-6;
+}
+
+.markdown-content img {
+  @apply max-w-full h-auto rounded-lg my-4;
+}
+
+/* KaTeX styling */
+.katex-display {
+  @apply overflow-x-auto py-4;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-light {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow effects */
+.glow {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+.glow-hover:hover {
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+}
+
+/* Input focus ring */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 
+         text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 
+         focus:outline-none focus:ring-2 focus:ring-primary-500/50;
+}
+
+.btn-secondary {
+  @apply bg-dark-700 hover:bg-dark-600 text-gray-200 font-medium px-4 py-2 rounded-lg 
+         transition-all duration-200 border border-dark-600 hover:border-dark-500;
+}
+
+.btn-ghost {
+  @apply bg-transparent hover:bg-dark-800 text-gray-300 hover:text-white 
+         font-medium px-3 py-2 rounded-lg transition-all duration-200;
+}
+
+/* Tooltip */
+.tooltip {
+  @apply absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 
+         bg-dark-800 text-xs text-gray-200 rounded whitespace-nowrap 
+         opacity-0 invisible transition-all duration-200;
+}
+
+.tooltip-trigger:hover .tooltip {
+  @apply opacity-100 visible;
+}
