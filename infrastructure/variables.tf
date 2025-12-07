@@ -13,7 +13,7 @@ variable "project_name" {
 variable "domain_name" {
   description = "Custom domain name (e.g., chat.collegehive.in)"
   type        = string
-  default     = "chat.collegehive.in"
+  default     = "ai.collegehive.in"
 }
 
 variable "hosted_zone_name" {
