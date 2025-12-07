@@ -17,6 +17,12 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Provider for ACM certificate (must be in us-east-1 for CloudFront)
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+}
+
 # Random suffix for unique resource names
 resource "random_id" "suffix" {
   byte_length = 4
@@ -24,6 +30,55 @@ resource "random_id" "suffix" {
 
 locals {
   project_name = "${var.project_name}-${random_id.suffix.hex}"
+}
+
+# ============================================
+# Route 53 and ACM Certificate
+# ============================================
+
+# Get the hosted zone
+data "aws_route53_zone" "main" {
+  name = var.hosted_zone_name
+}
+
+# ACM Certificate for custom domain (must be in us-east-1 for CloudFront)
+resource "aws_acm_certificate" "frontend" {
+  provider          = aws.us_east_1
+  domain_name       = var.domain_name
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Project = var.project_name
+  }
+}
+
+# DNS validation record
+resource "aws_route53_record" "cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.frontend.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.main.zone_id
+}
+
+# Certificate validation
+resource "aws_acm_certificate_validation" "frontend" {
+  provider                = aws.us_east_1
+  certificate_arn         = aws_acm_certificate.frontend.arn
+  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 }
 
 # ============================================
@@ -163,6 +218,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   is_ipv6_enabled     = true
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
+  aliases             = [var.domain_name]
 
   origin {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
@@ -209,11 +265,28 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn      = aws_acm_certificate_validation.frontend.certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
   }
 
   tags = {
     Project = var.project_name
+  }
+
+  depends_on = [aws_acm_certificate_validation.frontend]
+}
+
+# Route 53 A record for custom domain
+resource "aws_route53_record" "frontend" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.frontend.domain_name
+    zone_id                = aws_cloudfront_distribution.frontend.hosted_zone_id
+    evaluate_target_health = false
   }
 }
 

@@ -9,3 +9,15 @@ variable "project_name" {
   type        = string
   default     = "mychatgpt"
 }
+
+variable "domain_name" {
+  description = "Custom domain name (e.g., chat.collegehive.in)"
+  type        = string
+  default     = "chat.collegehive.in"
+}
+
+variable "hosted_zone_name" {
+  description = "Route 53 hosted zone name (e.g., collegehive.in)"
+  type        = string
+  default     = "collegehive.in"
+}

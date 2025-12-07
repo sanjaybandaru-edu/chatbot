@@ -1,4 +1,9 @@
 output "frontend_url" {
+  description = "Custom domain URL for the frontend"
+  value       = "https://${var.domain_name}"
+}
+
+output "cloudfront_url" {
   description = "CloudFront distribution URL for the frontend"
   value       = "https://${aws_cloudfront_distribution.frontend.domain_name}"
 }

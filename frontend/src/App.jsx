@@ -2,10 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import Chat from './components/Chat';
 import Settings from './components/Settings';
+import PatternLock from './components/PatternLock';
 import { chatApi, modelApi } from './api';
 import { Menu, X } from 'lucide-react';
 
+// Check if already authenticated (session storage)
+const isAuthenticated = () => {
+    return sessionStorage.getItem('chatgpt_auth') === 'true';
+};
+
 function App() {
+    const [authenticated, setAuthenticated] = useState(isAuthenticated());
     const [chats, setChats] = useState([]);
     const [currentChatId, setCurrentChatId] = useState(null);
     const [currentChat, setCurrentChat] = useState(null);
@@ -137,6 +144,16 @@ function App() {
             console.error('Failed to update models:', err);
         }
     };
+
+    const handleUnlock = () => {
+        sessionStorage.setItem('chatgpt_auth', 'true');
+        setAuthenticated(true);
+    };
+
+    // Show pattern lock if not authenticated
+    if (!authenticated) {
+        return <PatternLock onUnlock={handleUnlock} />;
+    }
 
     if (loading) {
         return (
