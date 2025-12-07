@@ -5,7 +5,6 @@ Deployed on AWS Lambda with Mangum adapter.
 import os
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from mangum import Mangum
@@ -20,15 +19,8 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS middleware - Note: allow_credentials=False when using wildcard origin
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-)
+# NOTE: CORS is handled by Lambda Function URL, not FastAPI
+# This avoids duplicate Access-Control-Allow-Origin headers
 
 # Default user ID (since this is a personal app)
 DEFAULT_USER_ID = "default-user"
