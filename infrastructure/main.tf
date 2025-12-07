@@ -41,21 +41,8 @@ data "aws_route53_zone" "main" {
   name = var.hosted_zone_name
 }
 
-# CAA record to allow Amazon to issue certificates
-resource "aws_route53_record" "caa" {
-  zone_id         = data.aws_route53_zone.main.zone_id
-  name            = var.domain_name
-  type            = "CAA"
-  ttl             = 300
-  allow_overwrite = true
-
-  records = [
-    "0 issue \"amazon.com\"",
-    "0 issuewild \"amazon.com\""
-  ]
-}
-
 # ACM Certificate for custom domain (must be in us-east-1 for CloudFront)
+# Note: CAA record is not required - Amazon can issue certs without it
 resource "aws_acm_certificate" "frontend" {
   provider          = aws.us_east_1
   domain_name       = var.domain_name
@@ -68,8 +55,6 @@ resource "aws_acm_certificate" "frontend" {
   tags = {
     Project = var.project_name
   }
-
-  depends_on = [aws_route53_record.caa]
 }
 
 # DNS validation record
